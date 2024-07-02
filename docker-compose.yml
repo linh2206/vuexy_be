@@ -12,21 +12,21 @@ services:
         volumes:
             - redis_data:/bitnami/redis/data
         restart: always
-
     db:
-        image: mysql:8.0
+        image: 'mongo:latest'
         container_name: db
+        ports:
+            - '27017:27017'
         restart: always
         environment:
-            MYSQL_ROOT_PASSWORD: ${DATABASE_PASSWORD}
-            MYSQL_DATABASE: ${DATABASE_DB_NAME}
-        ports:
-            - '3306:3306'
+            MONGODB_ADMIN_USER: ${DATABASE_USERNAME}
+            MONGODB_ADMIN_PASS: ${DATABASE_PASSWORD}
+            MONGODB_DATABASE: ${DATABASE_DB_NAME}
         volumes:
-            - db_data:/var/lib/mysql
+            - db_data:/var/lib/mongo
         networks:
             - myNetwork
-
+        command: mongod
     project:
         build:
             context: .
