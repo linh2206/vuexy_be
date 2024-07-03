@@ -13,23 +13,16 @@ import mail from '~/config/mail.config';
 import redis from '~/config/redis.config';
 import token from '~/config/token.config';
 import { DatabaseModule } from '~/database/typeorm';
-import { PermissionRepository } from '~/database/typeorm/repositories/permission.repository';
+// import { PermissionRepository } from '~/database/typeorm/repositories/permission.repository';
 import { AuthModule } from '~/modules/auth/auth.module';
 import { MailModule } from '~/modules/mail/mail.module';
 import { MediaModule } from '~/modules/media/media.module';
-import { PermissionModule } from '~/modules/permission/permission.module';
-import { ProfileModule } from '~/modules/profile/profile.module';
-import { RoleModule } from '~/modules/role/role.module';
 import { SocketModule } from '~/modules/socket/socket.module';
 import { UtilService } from '~/shared/services';
 import { CacheService } from '~/shared/services/cache.service';
 import { SharedModule } from '~/shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
-import { DepartmentModule } from './modules/department/department.module';
-import { ProviderModule } from './modules/provider/provider.module';
-import { UserModule } from './modules/user/user.module';
-import { WarehouseModule } from './modules/warehouse/warehouse.module';
 
 @Module({
     imports: [
@@ -47,17 +40,10 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
         DatabaseModule,
         SharedModule,
         AuthModule,
-        ProfileModule,
-        RoleModule,
-        PermissionModule,
         MailModule,
         DiscoveryModule,
         MediaModule,
         SocketModule,
-        UserModule,
-        DepartmentModule,
-        WarehouseModule,
-        ProviderModule,
     ],
     controllers: [AppController],
     providers: [
@@ -74,7 +60,7 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
             provide: APP_GUARD,
             useClass: PermissionGuard,
         },
-        PermissionRepository,
+        // PermissionRepository,
     ],
 })
 // export class AppModule { }
@@ -84,7 +70,7 @@ import { WarehouseModule } from './modules/warehouse/warehouse.module';
 export class AppModule implements OnModuleInit {
     constructor(
         private readonly discover: DiscoveryService,
-        private readonly permissionRepositopry: PermissionRepository,
+        // private readonly permissionRepositopry: PermissionRepository,
         private readonly cacheService: CacheService,
         private readonly utilService: UtilService,
     ) {}
@@ -103,30 +89,30 @@ export class AppModule implements OnModuleInit {
     onModuleInit() {
         // open this to insert permissions to database
         this.cacheService.deletePattern('');
-        this.insertPermissions();
+        // this.insertPermissions();
     }
 
-    async insertPermissions() {
-        const permissions = await this.discover.controllerMethodsWithMetaAtKey<string>('permission');
-        permissions.forEach((permission) => {
-            const action = permission.meta[0] || permission.meta;
-            if ([BYPASS_PERMISSION, ONLY_ADMIN].includes(action)) return;
+    // async insertPermissions() {
+    // const permissions = await this.discover.controllerMethodsWithMetaAtKey<string>('permission');
+    //     permissions.forEach((permission) => {
+    //         const action = permission.meta[0] || permission.meta;
+    //         if ([BYPASS_PERMISSION, ONLY_ADMIN].includes(action)) return;
 
-            const permissionEntity = this.permissionRepositopry.create({
-                name:
-                    (this.utilService.capitalizeFirstLetter(permission.discoveredMethod.methodName?.split(/(?=[A-Z])/)?.join(' ')) || '') +
-                    ' ' +
-                    permission.discoveredMethod.parentClass.name.replace('Controller', ''),
-                action: action,
-                type: action.split(':')[0],
-            });
+    //         const permissionEntity = this.permissionRepositopry.create({
+    //             name:
+    //                 (this.utilService.capitalizeFirstLetter(permission.discoveredMethod.methodName?.split(/(?=[A-Z])/)?.join(' ')) || '') +
+    //                 ' ' +
+    //                 permission.discoveredMethod.parentClass.name.replace('Controller', ''),
+    //             action: action,
+    //             type: action.split(':')[0],
+    //         });
 
-            this.permissionRepositopry
-                .insert(permissionEntity)
-                .then((res) => {
-                    console.log('LOG:: Permission inserted:', res.identifiers[0].id, permissionEntity.action);
-                })
-                .catch((err) => {});
-        });
-    }
+    //         this.permissionRepositopry
+    //             .insert(permissionEntity)
+    //             .then((res) => {
+    //                 console.log('LOG:: Permission inserted:', res.identifiers[0].id, permissionEntity.action);
+    //             })
+    //             .catch((err) => {});
+    //     });
+    // }
 }

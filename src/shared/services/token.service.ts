@@ -4,7 +4,6 @@ import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import * as jwt from 'jsonwebtoken';
 import { CACHE_TIME } from '~/common/enums/enum';
-import { UserEntity } from '~/database/typeorm/entities/user.entity';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
 import { CacheService } from '~/shared/services/cache.service';
 import { UtilService } from '~/shared/services/util.service';
@@ -48,13 +47,13 @@ export class TokenService {
     }
 
     // verify the auth token, return usereID
-    public async verifyAuthToken(data: { authToken: string }): Promise<{ id: string; user: UserEntity }> {
+    public async verifyAuthToken(data: { authToken: string }): Promise<{ id: string }> {
         try {
-            if (!data.authToken) return { id: null, user: null };
+            if (!data.authToken) return { id: null };
 
             const { authToken } = data;
             const jwtRegex = /(^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$)/;
-            const res = { id: null, user: null };
+            const res = { id: null };
             if (RegExp(jwtRegex).exec(authToken)) {
                 const { authTokenName, tokenData } = await this.getTokentData(authToken);
                 const password = tokenData.password.slice(8, tokenData.password.length - 8);
@@ -64,14 +63,13 @@ export class TokenService {
                 if (process.env.LOGIN_SINGLE_DEVICE === 'true' && tokenData.secretToken && account?.secretToken !== tokenData.secretToken) return res;
                 if (account && authTokenName === tokenData.authTokenName) {
                     res.id = account.id;
-                    res.user = account.user;
                 }
             }
 
             return res;
         } catch (err) {
             console.log('verifyAuthToken error', err);
-            return { id: null, user: null };
+            return { id: null };
         }
     }
 
@@ -87,7 +85,7 @@ export class TokenService {
         });
 
         this.cacheService.setJson(key, account, CACHE_TIME.ONE_HOUR);
-        this.cacheService.setJson(`userData:${account?.user?.id}`, account?.user, CACHE_TIME.ONE_WEEK);
+        // this.cacheService.setJson(`userData:${account?.user?.id}`, account?.user, CACHE_TIME.ONE_WEEK);
         return account;
     }
 

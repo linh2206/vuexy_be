@@ -2,7 +2,6 @@ import { Injectable, InternalServerErrorException, UnauthorizedException } from 
 import { TokenService, UtilService } from '@shared/services';
 import { USER_STATUS } from '~/common/enums/enum';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
-import { UserRepository } from '~/database/typeorm/repositories/user.repository';
 import { MailService } from '~/modules/mail/mail.service';
 import { CacheService } from '~/shared/services/cache.service';
 
@@ -17,7 +16,6 @@ export class AuthService {
         private readonly tokenService: TokenService,
         private readonly mailService: MailService,
         private readonly utilService: UtilService,
-        private readonly userRepository: UserRepository,
         private readonly accountRepository: AccountRepository,
         private readonly cacheService: CacheService,
     ) {}
@@ -56,12 +54,6 @@ export class AuthService {
             });
             this.accountRepository.update(account.id, { secretToken });
 
-            const user = await this.userRepository.findOne({
-                where: { accountId: account.id, status: USER_STATUS.ACTIVE },
-                relations: ['role'],
-            });
-            if (!user) throw new UnauthorizedException('User not found');
-
             this.cacheService.delete(`account:${account.id}`);
             return {
                 result: true,
@@ -71,7 +63,6 @@ export class AuthService {
                     session: tokenData.authToken,
                     expired: tokenData.authTokenExpiresIn,
                     refreshToken: refreshTokenData.refreshToken,
-                    role: user.role,
                 },
             };
         } catch (err) {
@@ -82,11 +73,11 @@ export class AuthService {
     public async logout(data: { session: string }) {
         const user = await this.tokenService.verifyAuthToken({ authToken: data.session });
         if (user.id) {
-            const accountId = (await this.userRepository.findOneBy({ id: +user.id })).accountId;
-            if (accountId) {
-                this.accountRepository.update(accountId, { secretToken: null });
-                this.cacheService.delete(`account:${accountId}`);
-            }
+            // const accountId = (await this.userRepository.findOneBy({ id: +user.id })).accountId;
+            // if (accountId) {
+            //     this.accountRepository.update(accountId, { secretToken: null });
+            //     this.cacheService.delete(`account:${accountId}`);
+            // }
         }
 
         return {
@@ -106,38 +97,15 @@ export class AuthService {
                 };
             }
 
-            const user = await this.userRepository.findOne({
-                select: ['email', 'fullName', 'status', 'account'],
-                where: { email: data.email },
-                relations: ['account'],
-            });
-            if (!user) {
-                return {
-                    result: false,
-                    message: 'User not found',
-                    data: null,
-                };
-            }
-
-            if (user.status === USER_STATUS.DISABLED) {
-                return {
-                    result: false,
-                    message: 'User disabled',
-                    data: {
-                        is_active: false,
-                    },
-                };
-            }
-
-            const encrypted = this.utilService.aesEncrypt({ email: user.email, password: user.account.password }, this.RESETPASSWORDTIMEOUT);
-            const link = `${process.env.FE_URL}/reset-password?token=${encrypted}`;
-            // gửi mail link reset password cho user
-            this.mailService.sendForgotPassword({
-                emailTo: user.email,
-                subject: 'Reset your password',
-                name: user.fullName,
-                link: link,
-            });
+            // const encrypted = this.utilService.aesEncrypt({ email: user.email, password: user.account.password }, this.RESETPASSWORDTIMEOUT);
+            // const link = `${process.env.FE_URL}/reset-password?token=${encrypted}`;
+            // // gửi mail link reset password cho user
+            // this.mailService.sendForgotPassword({
+            //     emailTo: user.email,
+            //     subject: 'Reset your password',
+            //     name: user.fullName,
+            //     link: link,
+            // });
 
             return {
                 result: true,
@@ -167,36 +135,35 @@ export class AuthService {
 
             const email = validateToken.email;
             const password = validateToken.password;
-            const user = await this.userRepository.findOne({
-                select: ['id', 'account'],
-                where: { email: email },
-                relations: ['account'],
-            });
-            if (!user) {
-                return {
-                    result: false,
-                    message: 'User not found',
-                    data: null,
-                };
-            }
+            // const user = await this.accountRepository.findOne({
+            //     select: ['id', 'email'],
+            //     where: { email: email },
+            // });
+            // if (!user) {
+            //     return {
+            //         result: false,
+            //         message: 'User not found',
+            //         data: null,
+            //     };
+            // }
 
-            if (user.account.password !== password) {
-                return {
-                    result: false,
-                    message: 'Token expired',
-                    data: null,
-                };
-            }
+            // if (user.account.password !== password) {
+            //     return {
+            //         result: false,
+            //         message: 'Token expired',
+            //         data: null,
+            //     };
+            // }
 
             const { salt, hash } = this.tokenService.hashPassword(data.password);
-            const res = await this.accountRepository.update(user.account.id, {
-                password: hash,
-                salt,
-            });
+            // const res = await this.accountRepository.update(user.account.id, {
+            //     password: hash,
+            //     salt,
+            // });
 
             return {
-                result: res.affected > 0,
-                message: res.affected > 0 ? 'Password reset successfully' : 'Cannot reset password',
+                // result: res.affected > 0,
+                // message: res.affected > 0 ? 'Password reset successfully' : 'Cannot reset password',
                 data: null,
             };
         } catch (err) {

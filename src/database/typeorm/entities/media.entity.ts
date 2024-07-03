@@ -1,6 +1,5 @@
 import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { MEDIA_TYPE } from '~/common/enums/enum';
-import { UserEntity } from '~/database/typeorm/entities/user.entity';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity({ name: 'medias' })
@@ -18,6 +17,4 @@ export class MediaEntity extends AbstractEntity {
     path: string;
 
     /* RELATION */
-    @OneToMany(() => UserEntity, (entity: UserEntity) => entity.avatar, { createForeignKeyConstraints: false })
-    users: Relation<UserEntity>[];
 }

@@ -1,6 +1,5 @@
 import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { AbstractEntity } from '~/database/typeorm/entities/abstract.entity';
-import { UserEntity } from '~/database/typeorm/entities/user.entity';
 
 @Entity({ name: 'accounts' })
 export class AccountEntity extends AbstractEntity {
@@ -22,8 +21,4 @@ export class AccountEntity extends AbstractEntity {
 
     @Column({ name: 'is_active', type: 'boolean', default: true, nullable: true })
     isActive: boolean;
-
-    /* RELATIONS */
-    @OneToOne(() => UserEntity, (user) => user.account, { createForeignKeyConstraints: false })
-    user: Relation<UserEntity>;
 }
