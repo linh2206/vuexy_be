@@ -46,20 +46,18 @@ export class ProfileController {
     @Permission(BYPASS_PERMISSION)
     @Get()
     findOne(@Req() req: Request) {
-        const id = req.headers['_email'].toString();
         return this.profileService.findOne(req.headers['_email'].toString());
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch()
     update(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
-        return this.profileService.update(+req.headers['_userId'], updateProfileDto);
+        return this.profileService.update(req.headers['_email'].toString(), updateProfileDto);
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch('change-password')
     changePassword(@Req() req: Request, @Body() updateProfileDto: ChangePasswordDto) {
-        const id = req.headers['_userId'].toString();
-        return this.profileService.changePassword(id, updateProfileDto);
+        return this.profileService.changePassword(req.headers['_email'].toString(), updateProfileDto);
     }
 }

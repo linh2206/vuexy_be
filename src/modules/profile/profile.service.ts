@@ -14,15 +14,15 @@ export class ProfileService {
         });
     }
 
-    update(id: number, updateProfileDto: UpdateProfileDto) {
-        // return this.accountRepository.update(id, updateProfileDto);
+    update(email: string, updateProfileDto: UpdateProfileDto) {
+        return this.accountRepository.update(email, updateProfileDto);
     }
 
-    async changePassword(id: string, updateProfileDto: ChangePasswordDto) {
+    async changePassword(email: string, updateProfileDto: ChangePasswordDto) {
         if (updateProfileDto.new_password !== updateProfileDto.confirm_password) {
             throw new BadRequestException('Mật khẩu mới không khớp');
         }
-        const account = await this.accountRepository.findOneBy({ id: id });
+        const account = await this.accountRepository.findOne({ where: { email } });
         const isMatch = await this.tokenService.isPasswordCorrect(updateProfileDto.old_password, account.password);
         if (!isMatch) {
             throw new BadRequestException('Mật khẩu cũ không đúng');
@@ -30,7 +30,7 @@ export class ProfileService {
 
         const { salt, hash } = this.tokenService.hashPassword(updateProfileDto.new_password);
         const res = await this.accountRepository.update(
-            { id: id },
+            { email: email },
             {
                 password: hash,
                 salt,
