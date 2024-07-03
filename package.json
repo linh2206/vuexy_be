@@ -1,14 +1,14 @@
 {
-    "name": "warehouse-ms-be",
+    "name": "vuexy",
     "version": "0.0.1",
-    "description": "Warehouse Management System",
+    "description": "",
     "author": "",
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
         "prebuild": "rimraf dist",
         "build": "nest build",
-        "build:swc": "nest build -b swc --type-check",
+        "build:swc": "node --max_old_space_size=2192 nest build -b swc --type-check",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
         "start:swc": "nest start -b swc --type-check",
