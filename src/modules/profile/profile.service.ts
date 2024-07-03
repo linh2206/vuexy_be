@@ -10,6 +10,7 @@ export class ProfileService {
 
     async findOne(username: string) {
         return await this.accountRepository.findOne({
+            select: ['email', 'username', 'description'],
             where: { username: username },
         });
     }

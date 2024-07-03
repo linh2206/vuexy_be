@@ -23,6 +23,6 @@ export class AccountEntity extends AbstractEntity {
     @Column({ name: 'secret_token', type: 'varchar', length: 255, nullable: true })
     secretToken: string;
 
-    @Column({ name: 'is_active', type: 'boolean', default: true, nullable: true })
-    isActive: boolean;
+    @Column({ name: 'description', type: 'varchar', length: 255, nullable: true })
+    description: string;
 }

@@ -4,7 +4,7 @@ import { AccountRepository } from '~/database/typeorm/repositories/account.repos
 import { MailService } from '~/modules/mail/mail.service';
 import { CacheService } from '~/shared/services/cache.service';
 import { SignUpDto } from './dto/sign-up.dto';
-
+import { UserLogRepository } from '~/database/typeorm/repositories/user-log.repository';
 @Injectable()
 export class AuthService {
     private readonly RESETPASSWORDTIMEOUT = 1800000; // miliseconds (30 mins)
@@ -17,9 +17,21 @@ export class AuthService {
         private readonly mailService: MailService,
         private readonly utilService: UtilService,
         private readonly accountRepository: AccountRepository,
+        private readonly userLogRepository: UserLogRepository,
         private readonly cacheService: CacheService,
     ) {}
 
+    private makeText(length) {
+        let result = '';
+        const characters = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz';
+        const charactersLength = characters.length;
+        let counter = 0;
+        while (counter < length) {
+            result += characters.charAt(Math.floor(Math.random() * charactersLength));
+            counter += 1;
+        }
+        return result;
+    }
     async create(createUserDto: SignUpDto) {
         const { email, password, ...rest } = createUserDto;
 
@@ -34,6 +46,7 @@ export class AuthService {
                 email: email,
                 username: createUserDto.username,
                 password: hash,
+                description: this.makeText(12),
                 salt,
             }),
         );
@@ -49,7 +62,7 @@ export class AuthService {
         };
     }
 
-    public async login(data: { email: string; password: string }) {
+    public async login(data: { email: string; password: string }, userAgent: string, ip: string) {
         try {
             const account = await this.accountRepository.findOne({
                 select: ['id', 'email', 'password', 'username'],
@@ -83,6 +96,14 @@ export class AuthService {
             this.accountRepository.update(account.id, { secretToken });
 
             this.cacheService.delete(`account:${account.id}`);
+
+            const log = await this.userLogRepository.save(
+                await this.userLogRepository.create({
+                    username: account.username,
+                    ip: ip,
+                    userAgent: userAgent,
+                }),
+            );
             return {
                 result: true,
                 message: 'Login successfully',

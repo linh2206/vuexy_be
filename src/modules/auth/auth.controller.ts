@@ -1,12 +1,12 @@
-import { Body, Controller, Post, Req } from '@nestjs/common';
+import { Body, Controller, Ip, Post, Req } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ForgotPasswordDto } from '~/modules/auth/dto/forgot-password.dto';
-import { LoginDto } from '~/modules/auth/dto/login.dto';
 import { RenewTokenDto } from '~/modules/auth/dto/renew-token.dto';
 import { ResetPasswordDto } from '~/modules/auth/dto/reset-password.dto';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
+import { LoginDto } from './dto/login.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -18,8 +18,8 @@ export class AuthController {
         return this.authService.create(data);
     }
     @Post('login')
-    public async login(@Body() data: LoginDto) {
-        return this.authService.login(data);
+    public async login(@Body() data: LoginDto, @Req() req: Request, @Ip() ip) {
+        return this.authService.login(data, req.headers['user-agent'].toString(), ip);
     }
 
     @ApiBasicAuth('authorization')
