@@ -6,8 +6,9 @@
     "private": true,
     "license": "UNLICENSED",
     "scripts": {
+        "fix-memory-limit": "cross-env LIMIT=2048 increase-memory-limit",
         "prebuild": "rimraf dist",
-        "build": "node --max_old_space_size=2192 nest build",
+        "build": "nest build",
         "build:swc": "nest build -b swc --type-check",
         "format": "prettier --write \"src/**/*.ts\" \"test/**/*.ts\"",
         "start": "nest start",
