@@ -1,5 +1,5 @@
 #!/bin/sh
-DOCKER_NAME="warehouse-ms-be"
+DOCKER_NAME="vuexy-ms-be"
 HOST_PORT="8080"
 DOCKER_PORT="8080"
 

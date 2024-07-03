@@ -8,21 +8,21 @@ import { ChangePasswordDto } from './dto/change-password.dto';
 export class ProfileService {
     constructor(private readonly accountRepository: AccountRepository, private readonly tokenService: TokenService) {}
 
-    async findOne(email: string) {
+    async findOne(username: string) {
         return await this.accountRepository.findOne({
-            where: { email },
+            where: { username: username },
         });
     }
 
-    update(email: string, updateProfileDto: UpdateProfileDto) {
-        return this.accountRepository.update(email, updateProfileDto);
+    update(username: string, updateProfileDto: UpdateProfileDto) {
+        return this.accountRepository.update({ username: username }, updateProfileDto);
     }
 
-    async changePassword(email: string, updateProfileDto: ChangePasswordDto) {
+    async changePassword(username: string, updateProfileDto: ChangePasswordDto) {
         if (updateProfileDto.new_password !== updateProfileDto.confirm_password) {
             throw new BadRequestException('Mật khẩu mới không khớp');
         }
-        const account = await this.accountRepository.findOne({ where: { email } });
+        const account = await this.accountRepository.findOne({ where: { username } });
         const isMatch = await this.tokenService.isPasswordCorrect(updateProfileDto.old_password, account.password);
         if (!isMatch) {
             throw new BadRequestException('Mật khẩu cũ không đúng');
@@ -30,7 +30,7 @@ export class ProfileService {
 
         const { salt, hash } = this.tokenService.hashPassword(updateProfileDto.new_password);
         const res = await this.accountRepository.update(
-            { email: email },
+            { username: username },
             {
                 password: hash,
                 salt,

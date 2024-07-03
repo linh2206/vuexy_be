@@ -19,7 +19,7 @@ export class AuthMiddleware implements NestMiddleware {
                 throw new UnauthorizedException('Request Forbidden [Token Invalid]');
             }
 
-            req.headers['_email'] = authData?.user.email;
+            req.headers['_username'] = authData?.user.username;
             // req.headers['_userId'] = authData?.user?.id?.toString();
             req['user'] = authData?.user;
             next();

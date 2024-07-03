@@ -46,18 +46,18 @@ export class ProfileController {
     @Permission(BYPASS_PERMISSION)
     @Get()
     findOne(@Req() req: Request) {
-        return this.profileService.findOne(req.headers['_email'].toString());
+        return this.profileService.findOne(req.headers['_username'].toString());
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch()
     update(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
-        return this.profileService.update(req.headers['_email'].toString(), updateProfileDto);
+        return this.profileService.update(req.headers['_username'].toString(), updateProfileDto);
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch('change-password')
     changePassword(@Req() req: Request, @Body() updateProfileDto: ChangePasswordDto) {
-        return this.profileService.changePassword(req.headers['_email'].toString(), updateProfileDto);
+        return this.profileService.changePassword(req.headers['_username'].toString(), updateProfileDto);
     }
 }

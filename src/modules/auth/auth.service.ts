@@ -52,7 +52,7 @@ export class AuthService {
     public async login(data: { email: string; password: string }) {
         try {
             const account = await this.accountRepository.findOne({
-                select: ['id', 'email', 'password'],
+                select: ['id', 'email', 'password', 'username'],
                 where: {
                     email: data.email,
                 },
@@ -68,12 +68,14 @@ export class AuthService {
             const secretToken = this.utilService.generateString();
             const tokenData = this.tokenService.createAuthToken({
                 email: data.email,
+                username: account.username,
                 id: account.id,
                 password: account.password,
                 secretToken,
             });
             const refreshTokenData = this.tokenService.createRefreshToken({
                 email: data.email,
+                username: account.username,
                 id: account.id,
                 password: account.password,
                 secretToken,
@@ -128,6 +130,13 @@ export class AuthService {
                     email: data.email,
                 },
             });
+            if (!account) {
+                return {
+                    result: false,
+                    message: 'Email does not exist',
+                    data: null,
+                };
+            }
             const encrypted = this.utilService.aesEncrypt({ email: account.email, password: account.password }, this.RESETPASSWORDTIMEOUT);
             const link = `${process.env.FE_URL}/reset-password?token=${encrypted}`;
             // gửi mail link reset password cho user
@@ -217,6 +226,7 @@ export class AuthService {
         }
 
         const authTokenData = this.tokenService.createAuthToken({
+            username: refreshTokenData.email,
             email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,
@@ -224,6 +234,7 @@ export class AuthService {
         }).authToken;
 
         const newRefreshTokenData = this.tokenService.createRefreshToken({
+            username: refreshTokenData.email,
             email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,
