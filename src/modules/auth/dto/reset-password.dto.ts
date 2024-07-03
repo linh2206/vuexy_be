@@ -3,10 +3,10 @@ import { IsNotEmpty } from 'class-validator';
 
 export class ResetPasswordDto {
     @ApiProperty({ example: 'abc' })
-    @IsNotEmpty({ message: 'Token không được để trống' })
+    @IsNotEmpty({ message: 'Token is not empty' })
     token: string;
 
     @ApiProperty({ example: 'xyz' })
-    @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
+    @IsNotEmpty({ message: 'password is not empty' })
     password: string;
 }

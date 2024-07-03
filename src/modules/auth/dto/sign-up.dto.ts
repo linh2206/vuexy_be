@@ -3,14 +3,14 @@ import { IsNotEmpty } from 'class-validator';
 
 export class SignUpDto {
     @ApiProperty({ example: 'admin' })
-    @IsNotEmpty({ message: 'Tên đăng nhập không được để trống' })
+    @IsNotEmpty({ message: 'username is not empty' })
     username: string;
 
-    @ApiProperty({ example: 'admin' })
-    @IsNotEmpty({ message: 'Tên đăng nhập không được để trống' })
+    @ApiProperty({ example: 'admin@gmail.com' })
+    @IsNotEmpty({ message: 'email is not empty' })
     email: string;
 
-    @ApiProperty({ example: 'admin' })
-    @IsNotEmpty({ message: 'Mật khẩu không được để trống' })
+    @ApiProperty({ example: 'admin@' })
+    @IsNotEmpty({ message: 'password is not empty' })
     password: string;
 }
