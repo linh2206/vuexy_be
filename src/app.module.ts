@@ -23,6 +23,7 @@ import { CacheService } from '~/shared/services/cache.service';
 import { SharedModule } from '~/shared/shared.module';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
+import { ProfileModule } from './modules/profile/profile.module';
 
 @Module({
     imports: [
@@ -44,6 +45,7 @@ import { AppService } from './app.service';
         DiscoveryModule,
         MediaModule,
         SocketModule,
+        ProfileModule,
     ],
     controllers: [AppController],
     providers: [

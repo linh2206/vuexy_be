@@ -6,12 +6,17 @@ import { LoginDto } from '~/modules/auth/dto/login.dto';
 import { RenewTokenDto } from '~/modules/auth/dto/renew-token.dto';
 import { ResetPasswordDto } from '~/modules/auth/dto/reset-password.dto';
 import { AuthService } from './auth.service';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @ApiTags('Auth')
 @Controller('auth')
 export class AuthController {
     constructor(private authService: AuthService) {}
 
+    @Post('sign-up')
+    public async signUp(@Body() data: SignUpDto) {
+        return this.authService.create(data);
+    }
     @Post('login')
     public async login(@Body() data: LoginDto) {
         return this.authService.login(data);

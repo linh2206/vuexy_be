@@ -8,6 +8,6 @@ export default () => ({
         passcodeExpiresIn: Number(process.env.PASSCODE_TOKEN_EXP),
         refreshTokenSecret: process.env.REFRESH_TOKEN_SECRET,
         refreshTokenName: process.env.REFRESH_TOKEN_NAME,
-        refreshExpiresIn: Number(process.env.REFRESH_TOKEN_EXP)
-    }
+        refreshExpiresIn: Number(process.env.REFRESH_TOKEN_EXP),
+    },
 });

@@ -3,7 +3,9 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import * as jwt from 'jsonwebtoken';
+import { ObjectId } from 'typeorm';
 import { CACHE_TIME } from '~/common/enums/enum';
+import { AccountEntity } from '~/database/typeorm/entities/account.entity';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
 import { CacheService } from '~/shared/services/cache.service';
 import { UtilService } from '~/shared/services/util.service';
@@ -20,17 +22,18 @@ export class TokenService {
     }
 
     /* AUTH TOKEN */
-    public createAuthToken(data: { id: number; password: string; secretToken: string }) {
+    public createAuthToken(data: { id: string; email: string; password: string; secretToken: string }) {
         try {
             const head = this.utilService.generateString(8);
             const tail = this.utilService.generateString(8);
-            const { id, secretToken } = data;
+            const { id, secretToken, email } = data;
             const password = `${head}${data.password}${tail}`;
             const { authTokenSecret, authTokenName, authExpiresIn } = this.configService.get('token');
             const exp = Math.floor(Date.now() / 1000) + authExpiresIn; // authExpiresIn: seconds
             const payload = {
                 exp,
                 id,
+                email,
                 password,
                 authTokenName,
                 secretToken,
@@ -47,45 +50,44 @@ export class TokenService {
     }
 
     // verify the auth token, return usereID
-    public async verifyAuthToken(data: { authToken: string }): Promise<{ id: string }> {
+    public async verifyAuthToken(data: { authToken: string }): Promise<{ id: string; user: AccountEntity }> {
         try {
-            if (!data.authToken) return { id: null };
+            if (!data.authToken) return { id: null, user: null };
 
             const { authToken } = data;
             const jwtRegex = /(^[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*\.[A-Za-z0-9-_]*$)/;
-            const res = { id: null };
+            const res = { id: null, user: null };
             if (RegExp(jwtRegex).exec(authToken)) {
                 const { authTokenName, tokenData } = await this.getTokentData(authToken);
                 const password = tokenData.password.slice(8, tokenData.password.length - 8);
-                const account = await this.getAccount(tokenData.id);
+                const account = await this.getAccount(tokenData.email);
                 if (account?.password !== password) return res;
                 // secretToken is used to invalidate all tokens when user logins from another device
                 if (process.env.LOGIN_SINGLE_DEVICE === 'true' && tokenData.secretToken && account?.secretToken !== tokenData.secretToken) return res;
                 if (account && authTokenName === tokenData.authTokenName) {
                     res.id = account.id;
+                    res.user = account;
                 }
             }
 
             return res;
         } catch (err) {
             console.log('verifyAuthToken error', err);
-            return { id: null };
+            return { id: null, user: null };
         }
     }
 
-    private async getAccount(id: number) {
-        const key = `account:${id}`;
+    private async getAccount(email: string) {
+        const key = `account:${email}`;
         const cached = await this.cacheService.getJson(key);
         if (cached) return cached;
-
         const account = await this.accountRepository.findOne({
-            select: ['id', 'password', 'secretToken'],
-            where: { id: id },
-            relations: ['user'],
+            select: ['id', 'password', 'secretToken', 'email'],
+            where: { email: email },
         });
 
         this.cacheService.setJson(key, account, CACHE_TIME.ONE_HOUR);
-        // this.cacheService.setJson(`userData:${account?.user?.id}`, account?.user, CACHE_TIME.ONE_WEEK);
+        this.cacheService.setJson(`userData:${account?.email}`, account, CACHE_TIME.ONE_WEEK);
         return account;
     }
 
@@ -99,6 +101,7 @@ export class TokenService {
         const res = {
             tokenData: {
                 id: tokenData.id,
+                email: tokenData.email,
                 password: tokenData.password,
                 secretToken: tokenData.secretToken,
                 authTokenName: tokenData.authTokenName,
@@ -112,11 +115,11 @@ export class TokenService {
     /* AUTH TOKEN */
 
     /* REFRESH TOKEN */
-    public createRefreshToken(data: { id: number; password: string; secretToken: string }) {
+    public createRefreshToken(data: { id: string; email: string; password: string; secretToken: string }) {
         try {
             const head = this.utilService.generateString(8);
             const tail = this.utilService.generateString(8);
-            const { id, secretToken } = data;
+            const { id, secretToken, email } = data;
             const password = `${head}${data.password}${tail}`;
             const { refreshTokenSecret, refreshTokenName, refreshExpiresIn } = this.configService.get('token');
             const exp = Math.floor(Date.now() / 1000) + refreshExpiresIn; // authExpiresIn: seconds
@@ -124,6 +127,7 @@ export class TokenService {
             const payload = {
                 exp,
                 id,
+                email,
                 password,
                 refreshTokenName,
                 secretToken,

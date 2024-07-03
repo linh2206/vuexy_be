@@ -1,9 +1,9 @@
-import { Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
+import { HttpException, Injectable, InternalServerErrorException, UnauthorizedException } from '@nestjs/common';
 import { TokenService, UtilService } from '@shared/services';
-import { USER_STATUS } from '~/common/enums/enum';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
 import { MailService } from '~/modules/mail/mail.service';
 import { CacheService } from '~/shared/services/cache.service';
+import { SignUpDto } from './dto/sign-up.dto';
 
 @Injectable()
 export class AuthService {
@@ -20,21 +20,45 @@ export class AuthService {
         private readonly cacheService: CacheService,
     ) {}
 
-    public async login(data: { username: string; password: string }) {
+    async create(createUserDto: SignUpDto) {
+        const { email, password, ...rest } = createUserDto;
+
+        const accountExist = await this.accountRepository.countBy({ email });
+        if (accountExist) {
+            throw new HttpException('Tài khoản đã tồn tại', 400);
+        }
+
+        const { salt, hash } = this.tokenService.hashPassword(createUserDto.password);
+        const account = await this.accountRepository.save(
+            this.accountRepository.create({
+                email: email,
+                username: createUserDto.username,
+                password: hash,
+                salt,
+            }),
+        );
+
+        if (!account) {
+            throw new HttpException('Cannot create account', 400);
+        }
+
+        return {
+            data: {
+                account,
+            },
+        };
+    }
+
+    public async login(data: { email: string; password: string }) {
         try {
             const account = await this.accountRepository.findOne({
-                select: ['id', 'username', 'password', 'secretToken', 'isActive'],
+                select: ['id', 'email', 'password'],
                 where: {
-                    username: data.username,
+                    email: data.email,
                 },
             });
-
             if (!account) {
                 throw new UnauthorizedException('Wrong username or password');
-            }
-
-            if (!account.isActive) {
-                throw new UnauthorizedException('User disabled');
             }
 
             if (!this.tokenService.isPasswordCorrect(data.password, account.password)) {
@@ -43,11 +67,13 @@ export class AuthService {
 
             const secretToken = this.utilService.generateString();
             const tokenData = this.tokenService.createAuthToken({
+                email: data.email,
                 id: account.id,
                 password: account.password,
                 secretToken,
             });
             const refreshTokenData = this.tokenService.createRefreshToken({
+                email: data.email,
                 id: account.id,
                 password: account.password,
                 secretToken,
@@ -73,11 +99,11 @@ export class AuthService {
     public async logout(data: { session: string }) {
         const user = await this.tokenService.verifyAuthToken({ authToken: data.session });
         if (user.id) {
-            // const accountId = (await this.userRepository.findOneBy({ id: +user.id })).accountId;
-            // if (accountId) {
-            //     this.accountRepository.update(accountId, { secretToken: null });
-            //     this.cacheService.delete(`account:${accountId}`);
-            // }
+            const accountId = (await this.accountRepository.findOneBy({ id: user.id })).id;
+            if (accountId) {
+                this.accountRepository.update(accountId, { secretToken: null });
+                this.cacheService.delete(`account:${accountId}`);
+            }
         }
 
         return {
@@ -96,16 +122,21 @@ export class AuthService {
                     data: null,
                 };
             }
-
-            // const encrypted = this.utilService.aesEncrypt({ email: user.email, password: user.account.password }, this.RESETPASSWORDTIMEOUT);
-            // const link = `${process.env.FE_URL}/reset-password?token=${encrypted}`;
-            // // gửi mail link reset password cho user
-            // this.mailService.sendForgotPassword({
-            //     emailTo: user.email,
-            //     subject: 'Reset your password',
-            //     name: user.fullName,
-            //     link: link,
-            // });
+            const account = await this.accountRepository.findOne({
+                select: ['id', 'email', 'password'],
+                where: {
+                    email: data.email,
+                },
+            });
+            const encrypted = this.utilService.aesEncrypt({ email: account.email, password: account.password }, this.RESETPASSWORDTIMEOUT);
+            const link = `${process.env.FE_URL}/reset-password?token=${encrypted}`;
+            // gửi mail link reset password cho user
+            this.mailService.sendForgotPassword({
+                emailTo: account.email,
+                subject: 'Reset your password',
+                name: account.username,
+                link: link,
+            });
 
             return {
                 result: true,
@@ -135,35 +166,35 @@ export class AuthService {
 
             const email = validateToken.email;
             const password = validateToken.password;
-            // const user = await this.accountRepository.findOne({
-            //     select: ['id', 'email'],
-            //     where: { email: email },
-            // });
-            // if (!user) {
-            //     return {
-            //         result: false,
-            //         message: 'User not found',
-            //         data: null,
-            //     };
-            // }
+            const user = await this.accountRepository.findOne({
+                select: ['id', 'email'],
+                where: { email: email },
+            });
+            if (!user) {
+                return {
+                    result: false,
+                    message: 'User not found',
+                    data: null,
+                };
+            }
 
-            // if (user.account.password !== password) {
-            //     return {
-            //         result: false,
-            //         message: 'Token expired',
-            //         data: null,
-            //     };
-            // }
+            if (user.password !== password) {
+                return {
+                    result: false,
+                    message: 'Token expired',
+                    data: null,
+                };
+            }
 
             const { salt, hash } = this.tokenService.hashPassword(data.password);
-            // const res = await this.accountRepository.update(user.account.id, {
-            //     password: hash,
-            //     salt,
-            // });
+            const res = await this.accountRepository.update(user.id, {
+                password: hash,
+                salt,
+            });
 
             return {
-                // result: res.affected > 0,
-                // message: res.affected > 0 ? 'Password reset successfully' : 'Cannot reset password',
+                result: res.affected > 0,
+                message: res.affected > 0 ? 'Password reset successfully' : 'Cannot reset password',
                 data: null,
             };
         } catch (err) {
@@ -186,12 +217,14 @@ export class AuthService {
         }
 
         const authTokenData = this.tokenService.createAuthToken({
+            email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,
             secretToken: refreshTokenData.secretToken,
         }).authToken;
 
         const newRefreshTokenData = this.tokenService.createRefreshToken({
+            email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,
             secretToken: refreshTokenData.secretToken,

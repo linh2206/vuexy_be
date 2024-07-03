@@ -1,14 +1,18 @@
-import { Column, Entity, Index, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm';
+import { Column, Entity, Index, ObjectIdColumn, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { AbstractEntity } from '~/database/typeorm/entities/abstract.entity';
 
 @Entity({ name: 'accounts' })
 export class AccountEntity extends AbstractEntity {
-    @PrimaryGeneratedColumn('increment', { name: 'id', type: 'int', unsigned: true })
-    id: number;
+    @ObjectIdColumn()
+    id: string;
 
     @Index('IDX_ACCOUNT_USERNAME', { fulltext: true })
     @Column({ name: 'username', type: 'varchar', length: 255 })
     username: string;
+
+    @Index('IDX_ACCOUNT_EMAIL', { fulltext: true })
+    @Column({ name: 'email', type: 'varchar', length: 255 })
+    email: string;
 
     @Column({ name: 'password', type: 'varchar', length: 255, nullable: true })
     password: string;
