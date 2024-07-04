@@ -115,25 +115,29 @@ export class AuthService {
                 },
             };
         } catch (err) {
-            throw new UnauthorizedException('Login error');
+            throw new HttpException('Login error', 400);
         }
     }
 
     public async logout(data: { session: string }) {
-        const user = await this.tokenService.verifyAuthToken({ authToken: data.session });
-        if (user.id) {
-            const accountId = (await this.accountRepository.findOneBy({ id: user.id })).id;
-            if (accountId) {
-                this.accountRepository.update(accountId, { secretToken: null });
-                this.cacheService.delete(`account:${accountId}`);
+        try {
+            const { user } = await this.tokenService.verifyAuthToken({ authToken: data.session });
+            if (user.username) {
+                const accountId = (await this.accountRepository.findOneBy({ username: user.username })).username;
+                if (accountId) {
+                    this.accountRepository.update({ username: accountId }, { secretToken: null });
+                    this.cacheService.delete(`account:${accountId}`);
+                }
             }
-        }
 
-        return {
-            result: true,
-            message: 'Success',
-            data: null,
-        };
+            return {
+                result: true,
+                message: 'Success',
+                data: null,
+            };
+        } catch (err) {
+            console.log('🚀 ~ AuthService ~ logout ~ err:', err);
+        }
     }
 
     public async forgotPassword(data: { email: string }) {
