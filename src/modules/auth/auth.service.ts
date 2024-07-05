@@ -35,9 +35,13 @@ export class AuthService {
     async create(createUserDto: SignUpDto) {
         const { email, password, username, ...rest } = createUserDto;
 
-        const accountExist = await this.accountRepository.countBy({ email, username });
-        if (accountExist) {
-            throw new HttpException('Tài khoản đã tồn tại', 400);
+        const usernameExist = await this.accountRepository.countBy({ username });
+        const emailExist = await this.accountRepository.countBy({ email });
+        if (usernameExist) {
+            throw new HttpException('Username already exists', 400);
+        }
+        if (emailExist) {
+            throw new HttpException('Email already exists', 400);
         }
 
         const { salt, hash } = this.tokenService.hashPassword(createUserDto.password);

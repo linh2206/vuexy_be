@@ -16,18 +16,17 @@ export class ProfileService {
     }
 
     update(username: string, updateProfileDto: UpdateProfileDto) {
-        console.log('🚀 ~ ProfileService ~ update ~ updateProfileDto:', updateProfileDto);
         return this.accountRepository.update({ username: username }, updateProfileDto);
     }
 
     async changePassword(username: string, updateProfileDto: ChangePasswordDto) {
         if (updateProfileDto.new_password !== updateProfileDto.confirm_password) {
-            throw new BadRequestException('Mật khẩu mới không khớp');
+            throw new BadRequestException('The new password does not match');
         }
         const account = await this.accountRepository.findOne({ where: { username } });
         const isMatch = await this.tokenService.isPasswordCorrect(updateProfileDto.old_password, account.password);
         if (!isMatch) {
-            throw new BadRequestException('Mật khẩu cũ không đúng');
+            throw new BadRequestException('Old password is incorrect');
         }
 
         const { salt, hash } = this.tokenService.hashPassword(updateProfileDto.new_password);
