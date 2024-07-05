@@ -37,6 +37,6 @@ COPY --from=builder /home/project/node_modules ./node_modules
 COPY --from=builder /home/project/dist ./dist
 COPY --from=builder /home/project/.env ./.env
 
-EXPOSE 8080
+EXPOSE 80
 
 CMD ["node", "dist/main"]
