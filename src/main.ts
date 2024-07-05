@@ -32,6 +32,7 @@ async function bootstrap() {
     app.useStaticAssets(join(process.cwd(), 'public'), {
         prefix: '/public/',
     });
+    app.enableCors();
 
     /* boostrap */
     // bootstrapLogging(app);

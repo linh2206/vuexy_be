@@ -1,11 +1,11 @@
-import { Column, Entity, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
+import { Column, Entity, ObjectIdColumn, OneToMany, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { MEDIA_TYPE } from '~/common/enums/enum';
 import { AbstractEntity } from './abstract.entity';
 
 @Entity({ name: 'medias' })
 export class MediaEntity extends AbstractEntity {
-    @PrimaryGeneratedColumn('increment', { name: 'id', type: 'int', unsigned: true })
-    id: number;
+    @ObjectIdColumn()
+    id: string;
 
     @Column({ name: 'type', type: 'enum', enum: MEDIA_TYPE })
     type: MEDIA_TYPE;

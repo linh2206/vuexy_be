@@ -5,7 +5,11 @@ import { IsOptional } from 'class-validator';
 export class UpdateProfileDto {
     @ApiProperty()
     @IsOptional()
-    fullName: string;
+    firstName: string;
+
+    @ApiProperty()
+    @IsOptional()
+    lastName: string;
 
     @ApiProperty()
     @IsOptional()
@@ -13,11 +17,11 @@ export class UpdateProfileDto {
 
     @ApiProperty()
     @IsOptional()
-    avatarId: number;
+    avatar: string;
 
     @ApiProperty()
     @IsOptional()
-    areaCode: string;
+    zipCode: string;
 
     @ApiProperty()
     @IsOptional()
@@ -29,10 +33,17 @@ export class UpdateProfileDto {
 
     @ApiProperty()
     @IsOptional()
-    birthday: string;
+    organization: string;
 
     @ApiProperty()
     @IsOptional()
-    @Transform(({ value }) => value?.toLowerCase())
-    gender: string;
+    state: string;
+
+    @ApiProperty()
+    @IsOptional()
+    country: string;
+
+    @ApiProperty()
+    @IsOptional()
+    language: string[];
 }

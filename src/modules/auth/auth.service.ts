@@ -33,9 +33,9 @@ export class AuthService {
         return result;
     }
     async create(createUserDto: SignUpDto) {
-        const { email, password, ...rest } = createUserDto;
+        const { email, password, username, ...rest } = createUserDto;
 
-        const accountExist = await this.accountRepository.countBy({ email });
+        const accountExist = await this.accountRepository.countBy({ email, username });
         if (accountExist) {
             throw new HttpException('Tài khoản đã tồn tại', 400);
         }

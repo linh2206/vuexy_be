@@ -7,7 +7,7 @@ import { Permission } from '~/common/decorators/permission.decorator';
 import { multerOptions } from '~/config/fileUpload.config';
 import { UtilService } from '~/shared/services';
 import { ProfileService } from './profile.service';
-import { UpdateProfileDto } from '../auth/dto/update-profile.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
 
 @ApiTags('Profile')

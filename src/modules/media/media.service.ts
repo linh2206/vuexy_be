@@ -10,11 +10,11 @@ export class MediaService {
         return `This action returns all media`;
     }
 
-    findOne(id: number) {
+    findOne(id: string) {
         return `This action returns a #${id} media`;
     }
 
-    async remove(id: number) {
+    async remove(id: string) {
         try {
             const media = await this.database.media.findOneBy({ id });
             if (!media) {

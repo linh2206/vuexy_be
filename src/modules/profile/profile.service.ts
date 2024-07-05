@@ -1,8 +1,8 @@
 import { BadRequestException, Injectable } from '@nestjs/common';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
 import { TokenService } from '~/shared/services';
-import { UpdateProfileDto } from '../auth/dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @Injectable()
 export class ProfileService {
@@ -10,12 +10,13 @@ export class ProfileService {
 
     async findOne(username: string) {
         return await this.accountRepository.findOne({
-            select: ['email', 'username', 'description'],
+            // select: ['email', 'username', 'description'],
             where: { username: username },
         });
     }
 
     update(username: string, updateProfileDto: UpdateProfileDto) {
+        console.log('🚀 ~ ProfileService ~ update ~ updateProfileDto:', updateProfileDto);
         return this.accountRepository.update({ username: username }, updateProfileDto);
     }
 

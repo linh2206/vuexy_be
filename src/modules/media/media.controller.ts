@@ -31,7 +31,7 @@ export class MediaController {
     @Post('upload')
     @UseInterceptors(FileInterceptor('file', multerOptions()))
     async upload(@UploadedFile() file: Express.Multer.File, @Req() req: Request) {
-        const media = await this.utilService.handleUploadedFile(file, req.headers['_userId'], null);
+        const media = await this.utilService.handleUploadedFile(file, req.headers['_username'], null);
         if (!media) throw new BadRequestException('File invalid');
 
         return {
@@ -48,11 +48,11 @@ export class MediaController {
 
     @Get(':id')
     findOne(@Param('id') id: string) {
-        return this.mediaService.findOne(+id);
+        return this.mediaService.findOne(id);
     }
 
     @Delete(':id')
     remove(@Param('id') id: string) {
-        return this.mediaService.remove(+id);
+        return this.mediaService.remove(id);
     }
 }

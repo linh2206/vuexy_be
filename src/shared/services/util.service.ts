@@ -207,7 +207,7 @@ export class UtilService {
             const imagePath = `/public/upload/${fileTypePath}${this.isEmpty(customPath) ? '' : '/' + customPath}${
                 this.isEmpty(userId) ? '' : '/' + userId
             }/${ymdPath}/${file.filename}`;
-
+            console.log('🚀 ~ UtilService ~ imagePath ~ imagePath:', imagePath);
             // move file
             if (!this.moveFile(oldFilePath, `.${imagePath}`)) return false;
 

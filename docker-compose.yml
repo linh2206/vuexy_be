@@ -36,7 +36,7 @@ services:
         networks:
             - myNetwork
         ports:
-            - '8080:8080'
+            - '80:80'
         volumes:
             - './public:/home/project/public'
         restart: always
