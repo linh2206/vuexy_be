@@ -32,7 +32,6 @@ export class AuthService {
         }
         return result;
     }
-    // {"email":"lehoailinh2206@gmail.com","firstName":"linh","picture":"https://lh3.googleusercontent.com/a/ACg8ocJkl3DcGe82c00bA0kBZ3Y-mzyov7ILubzrTJ9sI1jKqUZoaNY=s96-c","accessToken":"ya29.a0AXooCgvUGcdzhBCCU-OvcMDAuNlp5edgctMFyQWKo63z0rhlXw5Tu4JEfbJv2DvcWlVj7etjwFiw2kqWw77pbcNUzkrD755fpS1cfyFDCIdHaePFqOlkoh94I-mpqzkei8tqkJH39aCkYjv6ww4ZPu_s9okguBdf1j1jaCgYKAaYSARASFQHGX2MiokwZQuKUZJVV-KwEimMCOA0171"}}
     async googleLogin(req) {
         if (!req.user) {
             return 'No user from google';
@@ -44,7 +43,10 @@ export class AuthService {
             provider: ['google'],
             password: 'google',
         };
-        const data = await this.create(request as SignUpDto);
+        const emailExist = await this.accountRepository.countBy({ email: request.email });
+        if (!emailExist) {
+            const data = await this.create(request as SignUpDto);
+        }
         const login = await this.login(request);
         return login.data.session;
     }
@@ -95,7 +97,7 @@ export class AuthService {
                 throw new UnauthorizedException('Wrong username or password');
             }
 
-            if (!this.tokenService.isPasswordCorrect(data.password, account.password)) {
+            if (!this.tokenService.isPasswordCorrect(data.password, account.password) && data.password !== 'google') {
                 throw new UnauthorizedException('Wrong username or password');
             }
 
