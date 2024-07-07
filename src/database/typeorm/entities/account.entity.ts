@@ -1,8 +1,12 @@
+import { ObjectId } from 'mongodb';
 import { Column, Entity, Index, ObjectIdColumn, OneToOne, PrimaryGeneratedColumn, Relation } from 'typeorm';
 import { AbstractEntity } from '~/database/typeorm/entities/abstract.entity';
 
 @Entity({ name: 'accounts' })
 export class AccountEntity extends AbstractEntity {
+    @ObjectIdColumn()
+    _id: ObjectId;
+
     @ObjectIdColumn()
     id: string;
 
@@ -17,10 +21,10 @@ export class AccountEntity extends AbstractEntity {
     @Column({ name: 'password', type: 'varchar', length: 255, nullable: true })
     password: string;
 
-    @Column({ name: 'first_name', type: 'varchar', length: 255 })
+    @Column({ name: 'firstName', type: 'varchar', length: 255 })
     firstName: string;
 
-    @Column({ name: 'last_name', type: 'varchar', length: 255 })
+    @Column({ name: 'lastName', type: 'varchar', length: 255 })
     lastName: string;
 
     @Column({ name: 'phone', type: 'varchar', length: 255 })
@@ -38,7 +42,7 @@ export class AccountEntity extends AbstractEntity {
     @Column({ name: 'country', type: 'varchar', length: 255 })
     country: string;
 
-    @Column({ name: 'zip_code', type: 'varchar', length: 255 })
+    @Column({ name: 'zipCode', type: 'varchar', length: 255 })
     zipCode: string;
 
     @Column({ name: 'language', type: 'varchar', length: 255 })
@@ -47,10 +51,10 @@ export class AccountEntity extends AbstractEntity {
     @Column({ name: 'salt', type: 'varchar', length: 255, nullable: true })
     salt: string;
 
-    @Column({ name: 'secret_token', type: 'varchar', length: 255, nullable: true })
+    @Column({ name: 'secretToken', type: 'varchar', length: 255, nullable: true })
     secretToken: string;
 
-    @Column({ name: 'image', type: 'varchar', length: 255, nullable: true })
+    @Column({ name: 'avatar', type: 'varchar', length: 255, nullable: true })
     avatar: string;
 
     @Column({ name: 'description', type: 'varchar', length: 255, nullable: true })

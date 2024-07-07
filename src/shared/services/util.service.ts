@@ -207,7 +207,6 @@ export class UtilService {
             const imagePath = `/public/upload/${fileTypePath}${this.isEmpty(customPath) ? '' : '/' + customPath}${
                 this.isEmpty(userId) ? '' : '/' + userId
             }/${ymdPath}/${file.filename}`;
-            console.log('🚀 ~ UtilService ~ imagePath ~ imagePath:', imagePath);
             // move file
             if (!this.moveFile(oldFilePath, `.${imagePath}`)) return false;
 
@@ -285,6 +284,7 @@ export class UtilService {
             const initVector = process.env.INITVECTOR;
             const Securitykey = process.env.SECRETKEY;
             const decipher = createDecipheriv(algorithm, Securitykey, initVector);
+            const textToEncrypt = 'Nest';
             let decryptedData = decipher.update(encryptedMessage, 'hex', 'utf-8');
             decryptedData += decipher.final('utf8');
             const objMessage = JSON.parse(decryptedData);

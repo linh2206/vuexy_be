@@ -15,11 +15,11 @@ export class AuthMiddleware implements NestMiddleware {
 
             const authToken = req.headers['authorization'];
             const authData = await this.tokenService.verifyAuthToken({ authToken: authToken });
-            if (authData?.user?.email === null) {
+            if (authData?.id === null) {
                 throw new UnauthorizedException('Request Forbidden [Token Invalid]');
             }
 
-            req.headers['_username'] = authData?.user.username;
+            req.headers['_id'] = authData?.id;
             // req.headers['_userId'] = authData?.user?.id?.toString();
             req['user'] = authData?.user;
             next();

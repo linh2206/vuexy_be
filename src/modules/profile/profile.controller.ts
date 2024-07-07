@@ -9,6 +9,7 @@ import { UtilService } from '~/shared/services';
 import { ProfileService } from './profile.service';
 import { UpdateProfileDto } from './dto/update-profile.dto';
 import { ChangePasswordDto } from './dto/change-password.dto';
+import { ResetPasswordDto } from './dto/reset-password.dto';
 
 @ApiTags('Profile')
 @ApiBasicAuth('authorization')
@@ -46,18 +47,24 @@ export class ProfileController {
     @Permission(BYPASS_PERMISSION)
     @Get()
     findOne(@Req() req: Request) {
-        return this.profileService.findOne(req.headers['_username'].toString());
+        return this.profileService.findOne(req.headers['_id'].toString());
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch()
     update(@Req() req: Request, @Body() updateProfileDto: UpdateProfileDto) {
-        return this.profileService.update(req.headers['_username'].toString(), updateProfileDto);
+        return this.profileService.update(req.headers['_id'].toString(), updateProfileDto);
     }
 
     @Permission(BYPASS_PERMISSION)
     @Patch('change-password')
     changePassword(@Req() req: Request, @Body() updateProfileDto: ChangePasswordDto) {
-        return this.profileService.changePassword(req.headers['_username'].toString(), updateProfileDto);
+        return this.profileService.changePassword(req.headers['_id'].toString(), updateProfileDto);
+    }
+
+    @Permission(BYPASS_PERMISSION)
+    @Patch('reset-password')
+    resetPassword(@Req() req: Request, @Body() resetPassword: ResetPasswordDto) {
+        return this.profileService.resetPassword(req.headers['_id'].toString(), resetPassword);
     }
 }

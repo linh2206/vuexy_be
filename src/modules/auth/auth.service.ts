@@ -32,6 +32,23 @@ export class AuthService {
         }
         return result;
     }
+    // {"email":"lehoailinh2206@gmail.com","firstName":"linh","picture":"https://lh3.googleusercontent.com/a/ACg8ocJkl3DcGe82c00bA0kBZ3Y-mzyov7ILubzrTJ9sI1jKqUZoaNY=s96-c","accessToken":"ya29.a0AXooCgvUGcdzhBCCU-OvcMDAuNlp5edgctMFyQWKo63z0rhlXw5Tu4JEfbJv2DvcWlVj7etjwFiw2kqWw77pbcNUzkrD755fpS1cfyFDCIdHaePFqOlkoh94I-mpqzkei8tqkJH39aCkYjv6ww4ZPu_s9okguBdf1j1jaCgYKAaYSARASFQHGX2MiokwZQuKUZJVV-KwEimMCOA0171"}}
+    async googleLogin(req) {
+        if (!req.user) {
+            return 'No user from google';
+        }
+        const request = {
+            email: req.user.email,
+            firstName: req.user.user,
+            avatar: req.user.picture,
+            provider: ['google'],
+            password: 'google',
+        };
+        const data = await this.create(request as SignUpDto);
+        const login = await this.login(request);
+        return login.data.session;
+    }
+
     async create(createUserDto: SignUpDto) {
         const { email, password, username, ...rest } = createUserDto;
 
@@ -66,7 +83,7 @@ export class AuthService {
         };
     }
 
-    public async login(data: { email: string; password: string }, userAgent: string, ip: string) {
+    public async login(data: { email: string; password?: string }, userAgent?: string, ip?: string) {
         try {
             const account = await this.accountRepository.findOne({
                 select: ['id', 'email', 'password', 'username'],
@@ -85,14 +102,12 @@ export class AuthService {
             const secretToken = this.utilService.generateString();
             const tokenData = this.tokenService.createAuthToken({
                 email: data.email,
-                username: account.username,
                 id: account.id,
                 password: account.password,
                 secretToken,
             });
             const refreshTokenData = this.tokenService.createRefreshToken({
                 email: data.email,
-                username: account.username,
                 id: account.id,
                 password: account.password,
                 secretToken,
@@ -255,7 +270,6 @@ export class AuthService {
         }
 
         const authTokenData = this.tokenService.createAuthToken({
-            username: refreshTokenData.email,
             email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,
@@ -263,7 +277,6 @@ export class AuthService {
         }).authToken;
 
         const newRefreshTokenData = this.tokenService.createRefreshToken({
-            username: refreshTokenData.email,
             email: refreshTokenData.email,
             id: refreshTokenData.id,
             password: refreshTokenData.password,

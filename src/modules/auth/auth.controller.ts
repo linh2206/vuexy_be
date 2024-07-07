@@ -1,4 +1,4 @@
-import { Body, Controller, Ip, Post, Req } from '@nestjs/common';
+import { Body, Controller, Get, Ip, Post, Req, Res, UseGuards } from '@nestjs/common';
 import { ApiBasicAuth, ApiTags } from '@nestjs/swagger';
 import { Request } from 'express';
 import { ForgotPasswordDto } from '~/modules/auth/dto/forgot-password.dto';
@@ -7,6 +7,7 @@ import { ResetPasswordDto } from '~/modules/auth/dto/reset-password.dto';
 import { AuthService } from './auth.service';
 import { SignUpDto } from './dto/sign-up.dto';
 import { LoginDto } from './dto/login.dto';
+import { AuthGuard } from '@nestjs/passport';
 
 @ApiTags('Auth')
 @Controller('auth')
@@ -42,5 +43,20 @@ export class AuthController {
     @Post('renew-token')
     public async renewToken(@Body() data: RenewTokenDto) {
         return this.authService.renewAuthToken(data);
+    }
+
+    @Get('google')
+    @UseGuards(AuthGuard('google'))
+    async googleAuth(@Req() req) {}
+
+    @Get('redirect')
+    @UseGuards(AuthGuard('google'))
+    async googleAuthRedirect(@Req() req, @Res() res) {
+        try {
+            const token = await this.authService.googleLogin(req);
+            return res.redirect(`${process.env.FONTEND_URL}?token=${token}`);
+        } catch (err) {
+            res.status(500).send({ success: false, message: err.message });
+        }
     }
 }

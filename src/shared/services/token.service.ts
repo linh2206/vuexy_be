@@ -3,7 +3,7 @@ import { ConfigService } from '@nestjs/config';
 import * as bcrypt from 'bcrypt';
 import { createHash } from 'crypto';
 import * as jwt from 'jsonwebtoken';
-import { ObjectId } from 'typeorm';
+import { ObjectId } from 'mongodb';
 import { CACHE_TIME } from '~/common/enums/enum';
 import { AccountEntity } from '~/database/typeorm/entities/account.entity';
 import { AccountRepository } from '~/database/typeorm/repositories/account.repository';
@@ -22,18 +22,17 @@ export class TokenService {
     }
 
     /* AUTH TOKEN */
-    public createAuthToken(data: { id: string; email: string; username: string; password: string; secretToken: string }) {
+    public createAuthToken(data: { id: string; email: string; password?: string; secretToken: string }) {
         try {
             const head = this.utilService.generateString(8);
             const tail = this.utilService.generateString(8);
-            const { id, secretToken, username } = data;
+            const { id, secretToken } = data;
             const password = `${head}${data.password}${tail}`;
             const { authTokenSecret, authTokenName, authExpiresIn } = this.configService.get('token');
             const exp = Math.floor(Date.now() / 1000) + authExpiresIn; // authExpiresIn: seconds
             const payload = {
                 exp,
                 id,
-                username,
                 password,
                 authTokenName,
                 secretToken,
@@ -60,7 +59,7 @@ export class TokenService {
             if (RegExp(jwtRegex).exec(authToken)) {
                 const { authTokenName, tokenData } = await this.getTokentData(authToken);
                 const password = tokenData.password.slice(8, tokenData.password.length - 8);
-                const account = await this.getAccount(tokenData.username);
+                const account = await this.getAccount(tokenData.id);
                 if (account?.password !== password) return res;
                 // secretToken is used to invalidate all tokens when user logins from another device
                 if (process.env.LOGIN_SINGLE_DEVICE === 'true' && tokenData.secretToken && account?.secretToken !== tokenData.secretToken) return res;
@@ -77,17 +76,17 @@ export class TokenService {
         }
     }
 
-    private async getAccount(username: string) {
-        const key = `account:${username}`;
+    private async getAccount(id: string) {
+        const key = `account:${id}`;
         const cached = await this.cacheService.getJson(key);
         if (cached) return cached;
         const account = await this.accountRepository.findOne({
-            select: ['id', 'password', 'secretToken', 'email', 'username'],
-            where: { username: username },
+            select: ['id', 'password', 'secretToken', 'email'],
+            where: { _id: new ObjectId(id) },
         });
 
         this.cacheService.setJson(key, account, CACHE_TIME.ONE_HOUR);
-        this.cacheService.setJson(`userData:${account?.username}`, account, CACHE_TIME.ONE_WEEK);
+        this.cacheService.setJson(`userData:${account?.id}`, account, CACHE_TIME.ONE_WEEK);
         return account;
     }
 
@@ -101,7 +100,6 @@ export class TokenService {
         const res = {
             tokenData: {
                 id: tokenData.id,
-                username: tokenData.username,
                 password: tokenData.password,
                 secretToken: tokenData.secretToken,
                 authTokenName: tokenData.authTokenName,
@@ -115,11 +113,11 @@ export class TokenService {
     /* AUTH TOKEN */
 
     /* REFRESH TOKEN */
-    public createRefreshToken(data: { id: string; email: string; username: string; password: string; secretToken: string }) {
+    public createRefreshToken(data: { id: string; email: string; password: string; secretToken: string }) {
         try {
             const head = this.utilService.generateString(8);
             const tail = this.utilService.generateString(8);
-            const { id, secretToken, username } = data;
+            const { id, secretToken } = data;
             const password = `${head}${data.password}${tail}`;
             const { refreshTokenSecret, refreshTokenName, refreshExpiresIn } = this.configService.get('token');
             const exp = Math.floor(Date.now() / 1000) + refreshExpiresIn; // authExpiresIn: seconds
@@ -127,7 +125,6 @@ export class TokenService {
             const payload = {
                 exp,
                 id,
-                username,
                 password,
                 refreshTokenName,
                 secretToken,
