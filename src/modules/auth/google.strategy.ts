@@ -11,7 +11,7 @@ export class GoogleStrategy extends PassportStrategy(Strategy) {
         super({
             clientID: process.env.GOOGLE_CLIENT_ID,
             clientSecret: process.env.GOOGLE_CLIENT_SECRET,
-            callbackURL: 'https://api.oziny.com',
+            callbackURL: 'https://api.oziny.com/auth/redirect',
             scope: ['email', 'profile'],
         });
     }
